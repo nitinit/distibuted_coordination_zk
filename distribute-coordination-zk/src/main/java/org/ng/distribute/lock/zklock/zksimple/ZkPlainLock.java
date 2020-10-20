@@ -13,7 +13,7 @@ public class ZkPlainLock extends AbstractLock {
     private static final int sessionTimeout = 8000;
     private static final int connectionTimeout = 5000;
 
-    private static final String lockPath = "/lockPath";
+    private static final String lockPath = "/lockPath12";
 
     private ZkClient client;
 
@@ -54,9 +54,9 @@ public class ZkPlainLock extends AbstractLock {
     protected boolean tryLock() {
         try {
             client.createEphemeral(lockPath);
-            System.out.println(Thread.currentThread().getName() + "");
+            log.info("Acquiring Lock - Thread:{}", Thread.currentThread().getName());
         } catch (Exception e) {
-            log.error("Error occured in try Lock", e);
+            log.error("Error occurred in try Lock", e);
             return false;
         }
         return true;
@@ -64,6 +64,10 @@ public class ZkPlainLock extends AbstractLock {
 
     @Override
     public void releaseLock() {
-        client.delete(this.lockPath);
+        if (client != null) {
+            client.delete(this.lockPath);
+            client.close();
+            log.info("Release lock resource:{}", Thread.currentThread());
+        }
     }
 }

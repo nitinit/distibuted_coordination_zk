@@ -16,7 +16,7 @@ public class ZkSequenceLock extends AbstractLock {
     private static final int sessionTimeout = 8000;
     private static final int connectionTimeout = 5000;
 
-    private static final String lockPath = "/lockPath";
+    private static final String lockPath = "/lockPath567";
 
     private String beforePath;
     private String currentPath;
@@ -28,17 +28,16 @@ public class ZkSequenceLock extends AbstractLock {
         client = new ZkClient(zkServers);
         if (!client.exists(lockPath)) {
             client.createPersistent(lockPath);
-
         }
         log.info("zk client :{}", zkServers);
-
     }
-
 
     @Override
     protected void waitLock() {
         CountDownLatch latch = new CountDownLatch(1);
+        log.info("Waiting for lock, Thread: {}, beforePath:{}", Thread.currentThread(), beforePath);
         IZkDataListener listener = new IZkDataListener() {
+
             @Override
             public void handleDataDeleted(String dataPath) throws Exception {
                 log.info("Data Deleted-{}", dataPath);
@@ -53,7 +52,7 @@ public class ZkSequenceLock extends AbstractLock {
 
         if (client.exists(beforePath)) {
             try {
-                log.info("Current_path:" + currentPath);
+                log.info("Await for lock-> currentPath:" + currentPath);
                 latch.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -65,32 +64,31 @@ public class ZkSequenceLock extends AbstractLock {
     @Override
     protected boolean tryLock() {
         if (currentPath == null) {
-            currentPath = client.createEphemeralSequential(lockPath + "/", "lock-data");
+            currentPath = client.createEphemeralSequential(lockPath + "/", beforePath);
             log.info("current:" + currentPath);
         }
 
-        List<String> childrens = client.getChildren(lockPath);
-        Collections.sort(childrens);
-        System.out.println(currentPath + "--" + childrens.get(0));
+        List<String> childerns = client.getChildren(lockPath);
+        Collections.sort(childerns);
+        log.info("Childerns:{}", childerns);
+        log.info(currentPath + "--" + childerns.get(0));
 
-        if (currentPath.equals("/lockPath9/0000000000")) {
-            log.info("^^^" + beforePath + "^^" + childrens);
-        }
-
-        if (currentPath.equals(lockPath + "/" + childrens.get(0))) {
+        if (currentPath.equals(lockPath + "/" + childerns.get(0))) {
             log.info(Thread.currentThread().getName());
             return true;
         } else {
-            int curIndex = childrens.indexOf(currentPath.substring(lockPath.length() + 1));
-            beforePath = lockPath + "/" + childrens.get(curIndex - 1);
+            int curIndex = childerns.indexOf(currentPath.substring(lockPath.length() + 1));
+            beforePath = lockPath + "/" + childerns.get(curIndex - 1);
+            log.info("BeforePath:" + beforePath);
         }
-        log.info("beforePath" + beforePath);
         return false;
     }
 
     @Override
     public void releaseLock() {
+        log.info("Release lock: {}", Thread.currentThread().getName());
         log.info("delete:" + currentPath);
         client.delete(currentPath);
+        client.close();
     }
 }
