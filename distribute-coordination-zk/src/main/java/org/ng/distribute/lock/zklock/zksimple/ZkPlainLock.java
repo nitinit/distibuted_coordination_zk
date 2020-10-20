@@ -15,7 +15,6 @@ public class ZkPlainLock extends AbstractLock {
 
     private static final String lockPath = "/lockPath";
 
-
     private ZkClient client;
 
     public ZkPlainLock() {

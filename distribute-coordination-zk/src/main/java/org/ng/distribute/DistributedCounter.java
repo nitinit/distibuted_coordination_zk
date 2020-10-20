@@ -20,9 +20,6 @@ public class DistributedCounter {
     private int TIME = 50;
 
     public static void main(String[] args) {
-        // initialize log4j, zookeeper otherwise an error.
-        //org.apache.log4j.BasicConfigurator.configure();
-
         try {
             DistributedCounter app = new DistributedCounter();
             app.zk();

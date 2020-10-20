@@ -8,7 +8,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.util.concurrent.TimeUnit;
 
-public class ZkLockWithCuratorTemplate implements Lock {
+public class ZkLockWithCurator implements Lock {
     private String host = "localhost";
 
     private String lockPath = "/curatorLock";
@@ -22,20 +22,20 @@ public class ZkLockWithCuratorTemplate implements Lock {
 
     InterProcessMutex lock;
 
-   public ZkLockWithCuratorTemplate() {
-       curatorFramework = CuratorFrameworkFactory.builder()
-               .connectString(host)
-               .connectionTimeoutMs(CONNECTION_TIMEOUT)
-               .sessionTimeoutMs(SESSION_TIMEOUT)
-               .retryPolicy(new ExponentialBackoffRetry(SLEEP_TIME_MS, MAX_RETRIES))
-               .build();
-       curatorFramework.start();
-       lock = new InterProcessMutex (curatorFramework, lockPath);
+    public ZkLockWithCurator() {
+        curatorFramework = CuratorFrameworkFactory.builder()
+                .connectString(host)
+                .connectionTimeoutMs(CONNECTION_TIMEOUT)
+                .sessionTimeoutMs(SESSION_TIMEOUT)
+                .retryPolicy(new ExponentialBackoffRetry(SLEEP_TIME_MS, MAX_RETRIES))
+                .build();
+        curatorFramework.start();
+        lock = new InterProcessMutex(curatorFramework, lockPath);
     }
 
     @Override
     public void getLock() throws Exception {
-         lock.acquire(5, TimeUnit.SECONDS);
+        lock.acquire(5, TimeUnit.SECONDS);
     }
 
     @Override
